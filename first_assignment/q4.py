@@ -4,10 +4,13 @@ from scipy import ndimage
 from PIL import Image
 
 
-def _draw_magnitude_or_phase(img, name, which='magnitude'):
-    f = np.fft.fft2(img)
+def _draw_magnitude_or_phase(img, name, which='magnitude', log=False):
+    f = np.fft.fftshift(np.fft.fft2(img))
     if which == 'magnitude':
-        to_draw = np.abs(f)
+        if log:
+            to_draw = np.log(np.abs(f))
+        else:
+            to_draw = np.abs(f)
     elif which == 'phase':
         to_draw = np.angle(f)
     else:
@@ -18,6 +21,7 @@ def _draw_magnitude_or_phase(img, name, which='magnitude'):
     plt.show()
 
 
+# when there is no log, we can't see their difference. So I put log to see a better result
 def item_a():
     t1 = Image.open('./data/T1.bmp').convert('L')
     t2 = Image.open('./data/T2.bmp').convert('L')
@@ -27,7 +31,12 @@ def item_a():
     _draw_magnitude_or_phase(t2, 'T2', which='magnitude')
     _draw_magnitude_or_phase(t2, 'T2', which='phase')
 
+    _draw_magnitude_or_phase(t1, 'T1', which='magnitude', log=True)
+    _draw_magnitude_or_phase(t2, 'T2', which='magnitude', log=True)
 
+
+# why? cause their images are similar domain.
+# https://dsp.stackexchange.com/questions/72674/importance-of-phase-in-fft-of-an-image
 def item_b():
     t1 = Image.open('./data/T1.bmp').convert('L')
     t2 = Image.open('./data/T2.bmp').convert('L')
@@ -50,8 +59,49 @@ def item_b():
     plt.show()
 
 
+def item_c():
+    for (u0, u1) in {(1, 1), (1, 10), (10, 1), (10, 10), (100, 100)}:
+        x, y = np.meshgrid(np.arange(-3, 3, 0.05), np.arange(-3, 3, 0.05))
+        z = np.sin(u0 * x + u1 * y)
+        _draw_magnitude_or_phase(z, f'2-e u0:{u0}, u1:{u1}', which='magnitude', log=True)
+
+
+# image means mris
+def item_d_1():
+    t1 = Image.open('./data/T1.bmp').convert('L')
+
+    _draw_magnitude_or_phase(t1, 'T1 without filter', which='magnitude', log=True)
+    for siz in [3, 9, 15]:
+        h = (1 / (siz * siz)) * np.ones((siz, siz))
+        res = ndimage.convolve(t1, h, mode='nearest')
+        _draw_magnitude_or_phase(res, f'T1 with filter: {siz, siz}', which='magnitude', log=True)
+
+    t2 = Image.open('./data/T2.bmp').convert('L')
+    _draw_magnitude_or_phase(t2, 'T2 without filter', which='magnitude', log=True)
+    for siz in [3, 9, 15]:
+        h = (1 / (siz * siz)) * np.ones((siz, siz))
+        res = ndimage.convolve(t2, h, mode='nearest')
+        _draw_magnitude_or_phase(res, f'T2 with filter: {siz, siz}', which='magnitude', log=True)
+
+
+# image means item_c
+# odd!
+def item_d_2():
+    (u0, u1) = (100, 100)
+    x, y = np.meshgrid(np.arange(-3, 3, 0.05), np.arange(-3, 3, 0.05))
+    z = np.sin(u0 * x + u1 * y)
+    _draw_magnitude_or_phase(z, f'2-e u0:{u0}, u1:{u1} without filter', which='magnitude',
+                             log=True)
+    for siz in [3, 9, 15, 25, 51]:
+        h = (1 / (siz * siz)) * np.ones((siz, siz))
+        res = ndimage.convolve(z, h, mode='nearest')
+        _draw_magnitude_or_phase(res, f'2-e u0:{u0}, u1:{u1} with filter: {siz, siz}',
+                                 which='magnitude', log=True)
+
+
 if __name__ == "__main__":
-    item_a()
+    # item_a()
     # item_b()
     # item_c()
-    # item_d()
+    # item_d_1()
+    item_d_2()
