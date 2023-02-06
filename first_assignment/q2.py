@@ -47,17 +47,17 @@ def item_d():
 
 
 def item_e():
-    u0 = 1
-    u1 = 1
     x, y = np.meshgrid(np.arange(-3, 3, 0.05), np.arange(-3, 3, 0.05))
-    z = np.sin(u0 * x + u1 * y)
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.plot_surface(x, y, z)
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.set_zlabel('Z')
-    plt.show()
+    for (u0, u1) in {(0, 0), (1, 0), (0, 1), (1, 1), (10, 10)}:
+        z = np.sin(u0 * x + u1 * y)
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        ax.plot_surface(x, y, z)
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Z')
+        plt.title(f'u0: {u0}, u1: {u1}')
+        plt.show()
 
 
 if __name__ == "__main__":
