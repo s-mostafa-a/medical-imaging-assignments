@@ -1,7 +1,54 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy import ndimage
 from PIL import Image
+
+
+def _assertion_checks(image, filter, mode):
+    assert len(image.shape) == 2, "The image must be a 2d image!"
+    assert len(filter.shape) == 2, "The filter must be 2d!"
+    assert mode in ("valid", "same"), "The mode parameter can only be `valid` or `same`"
+    assert filter.shape[0] % 2 == 1 and filter.shape[
+        1] % 2 == 1, "filter shape must be a tuple of odd numbers!"
+
+
+def _get_paddings_and_new_image(image, filter_shape, mode):
+    padding_i = filter_shape[0] // 2
+    padding_j = filter_shape[1] // 2
+    if mode == "same":
+        image = np.pad(image, [(padding_i,), (padding_j,)])
+    return padding_i, padding_j, image
+
+
+def _filter_using_broadcast(image: np.array, filter: np.array, mode: str = 'same'):
+    _assertion_checks(image=image, filter=filter, mode=mode)
+    padding_i, padding_j, image = _get_paddings_and_new_image(image=image,
+                                                              filter_shape=filter.shape, mode=mode)
+    shape = tuple([image.shape[0] - 2 * padding_i, image.shape[1] - 2 * padding_j] +
+                  list(filter.shape))
+    multi_dim_image = np.empty(shape=shape, dtype=image.dtype)
+    for i in range(padding_i, image.shape[0] - padding_i):
+        for j in range(padding_j, image.shape[1] - padding_j):
+            multi_dim_image[i - padding_i, j - padding_j] = image[
+                                                            i - padding_i:i + padding_i + 1,
+                                                            j - padding_j:j + padding_j + 1]
+
+    expanded_filter = np.expand_dims(np.expand_dims(filter, axis=0), axis=0)
+
+    final_image = np.sum((multi_dim_image * expanded_filter), axis=(2, 3))
+    return final_image
+
+
+def get_filtered_image(image, filter):
+    result_image = np.empty(shape=image.shape, dtype=int)
+    if len(image.shape) == 3:
+        for ch in range(3):
+            result_image[:, :, ch] = _filter_using_broadcast(image=image[:, :, ch],
+                                                             filter=filter, mode='same')
+    elif len(image.shape) == 2:
+        result_image = _filter_using_broadcast(image=image, filter=filter, mode='same')
+    else:
+        raise Exception
+    return result_image
 
 
 def _draw_magnitude_or_phase(img, name, which='magnitude', log=False):
@@ -67,41 +114,40 @@ def item_c():
 
 
 # image means mris
-def item_d_1():
-    t1 = Image.open('./data/T1.bmp').convert('L')
+def item_d():
+    t1 = np.array(Image.open('./data/T1.bmp').convert('L'))
 
     _draw_magnitude_or_phase(t1, 'T1 without filter', which='magnitude', log=True)
     for siz in [3, 9, 15]:
         h = (1 / (siz * siz)) * np.ones((siz, siz))
-        res = ndimage.convolve(t1, h, mode='nearest')
+        res = get_filtered_image(t1, h)
         _draw_magnitude_or_phase(res, f'T1 with filter: {siz, siz}', which='magnitude', log=True)
 
-    t2 = Image.open('./data/T2.bmp').convert('L')
+    t2 = np.array(Image.open('./data/T2.bmp').convert('L'))
     _draw_magnitude_or_phase(t2, 'T2 without filter', which='magnitude', log=True)
     for siz in [3, 9, 15]:
         h = (1 / (siz * siz)) * np.ones((siz, siz))
-        res = ndimage.convolve(t2, h, mode='nearest')
+        res = get_filtered_image(t2, h)
         _draw_magnitude_or_phase(res, f'T2 with filter: {siz, siz}', which='magnitude', log=True)
 
 
-# image means item_c
-# odd!
-def item_d_2():
-    (u0, u1) = (100, 100)
-    x, y = np.meshgrid(np.arange(-3, 3, 0.05), np.arange(-3, 3, 0.05))
-    z = np.sin(u0 * x + u1 * y)
-    _draw_magnitude_or_phase(z, f'2-e u0:{u0}, u1:{u1} without filter', which='magnitude',
-                             log=True)
-    for siz in [3, 9, 15, 25, 51]:
-        h = (1 / (siz * siz)) * np.ones((siz, siz))
-        res = ndimage.convolve(z, h, mode='nearest')
-        _draw_magnitude_or_phase(res, f'2-e u0:{u0}, u1:{u1} with filter: {siz, siz}',
-                                 which='magnitude', log=True)
+# # image means item_c
+# # odd!
+# def item_d_2():
+#     (u0, u1) = (100, 100)
+#     x, y = np.meshgrid(np.arange(-3, 3, 0.05), np.arange(-3, 3, 0.05))
+#     z = np.sin(u0 * x + u1 * y)
+#     _draw_magnitude_or_phase(z, f'2-e u0:{u0}, u1:{u1} without filter', which='magnitude',
+#                              log=True)
+#     for siz in [3, 9, 15, 25, 51]:
+#         h = (1 / (siz * siz)) * np.ones((siz, siz))
+#         res = ndimage.convolve(z, h, mode='nearest')
+#         _draw_magnitude_or_phase(res, f'2-e u0:{u0}, u1:{u1} with filter: {siz, siz}',
+#                                  which='magnitude', log=True)
 
 
 if __name__ == "__main__":
     # item_a()
     # item_b()
     # item_c()
-    # item_d_1()
-    item_d_2()
+    item_d()

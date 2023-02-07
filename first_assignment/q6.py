@@ -86,12 +86,12 @@ def item_c():
     fact = 5
     brd = _find_new_image_borders_for_down_sampling(img, fact=fact)
 
-    for sig in [1, 3, 5, 7, 9]:
+    for sig in [1, 3, 9, 15]:
         filtered_img = ndimage.gaussian_filter(img, sigma=sig)
-        plt.imshow(filtered_img, cmap='gray')
-        plt.axis('off')
-        plt.title(f'filtered image with sigma {sig}')
-        plt.show()
+        # plt.imshow(filtered_img, cmap='gray')
+        # plt.axis('off')
+        # plt.title(f'filtered image with sigma {sig}')
+        # plt.show()
 
         truncated_img = filtered_img[brd[0][0]:-brd[0][1], brd[1][0]:-brd[1][1]]
         bc = _block_center(truncated_img, fact=fact)

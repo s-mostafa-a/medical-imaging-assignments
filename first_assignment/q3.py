@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy import ndimage
 from PIL import Image
 
 
@@ -132,10 +131,10 @@ def item_b_2():
 
 
 def item_c():
-    img = Image.open('./data/T1.bmp').convert('L')
+    img = np.array(Image.open('./data/T1.bmp').convert('L'))
     for siz in [3, 5, 9, 11, 13, 15]:
         h = (1 / (siz * siz)) * np.ones((siz, siz))
-        res = ndimage.convolve(img, h, mode='nearest')
+        res = get_filtered_image(img, h)
         plt.imshow(res, cmap='gray')
         plt.axis('off')
         plt.title(f'{(siz, siz)}')
@@ -170,6 +169,6 @@ if __name__ == "__main__":
     # item_a()
     # item_b_1()
     # item_b_2()
-    # item_c()
+    item_c()
     # item_d()
-    item_e()
+    # item_e()
