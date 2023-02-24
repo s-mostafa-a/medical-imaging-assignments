@@ -30,7 +30,7 @@ if __name__ == "__main__":
         right = get_sample_num_for_depth(sampling_frequency=fs, sound_velocity=c, d=depths[kd]['right'])
         all_spectrum = np.empty(shape=(L, int(1 + (right - left) / 2)))
 
-        frequencies = rfftfreq(right - left, 1. / fs)
+        frequencies = rfftfreq(right - left, 1. / fs) / (10 ** 6)
 
         for line in range(L):
             d_sig = rf_file[left:right, line]
@@ -41,7 +41,7 @@ if __name__ == "__main__":
                 plotted_one_of_them = True
                 plt.plot(frequencies, one_sided_power_spectrum)
                 plt.grid()
-                plt.xlabel('Frequency, hertz')
+                plt.xlabel('Frequency, mega hertz')
                 plt.ylabel('Amplitude')
                 plt.title('Signal power spectrum for a line')
                 plt.show()
@@ -51,8 +51,8 @@ if __name__ == "__main__":
         plt.plot(frequencies, mean_of_all)
         plt.grid()
         plt.plot(frequencies[np.argmax(mean_of_all)], mean_of_all[np.argmax(mean_of_all)], 'ok')
-        plt.xlabel('Frequency, hertz')
+        plt.xlabel('Frequency, mega hertz')
         plt.ylabel('Amplitude, normalized')
         plt.title(f"Normalized averaged power spectrum for depth {depths[kd]['left'], depths[kd]['right']}")
-        print(f"for depth {depths[kd]['left'], depths[kd]['right']} center is {frequencies[np.argmax(mean_of_all)]}")
+        print(f"Depth {depths[kd]['left'], depths[kd]['right']}\tcenter: {frequencies[np.argmax(mean_of_all)]:.3f} MHz")
         plt.show()
