@@ -1,68 +1,75 @@
-from scipy.signal import butter, lfilter, freqz
-from numpy.random import randn
-from scipy import signal
-import numpy as np
+from scipy.signal import butter, filtfilt
 import scipy.io as sio
-import matplotlib.pyplot as plt
 from numpy.fft import rfftfreq, rfft
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import freqz
+from PIL import Image
 
 
-def item_i():
-    pass
+def butter_bandpass_filter(data, lowcut, highcut, fs, order=4):
+    b, a = butter(N=order, Wn=[lowcut, highcut], fs=fs, btype='band')
+    y = filtfilt(b, a, data)
+    return y
 
 
-def item_ii():
-    pass
+def avali(fs, lowcut, highcut):
+    # Plot the frequency response for a few different orders.
+    plt.figure(1)
+    plt.clf()
+    for order in [4]:
+        b, a = butter(N=order, Wn=[lowcut, highcut], fs=fs, btype='band')
+        w, h = freqz(b, a, fs=fs, worN=2000)
+        plt.plot(w / (10 ** 6), abs(h), label="order = %d" % order)
+    plt.plot([0, 0.5 * fs / (10 ** 6)], [np.sqrt(0.5), np.sqrt(0.5)], '--', label='sqrt(0.5)')
+    plt.xlabel('Frequency (MHz)')
+    plt.ylabel('Gain')
+    plt.grid(True)
+    plt.legend(loc='best')
+    plt.show()
 
 
-def item_iii():
-    pass
-
-
-if __name__ == "__main__":
+def dovomi(fs, lowcut, highcut):
     rf_file = sio.loadmat('./data/mousekidney.mat')['RawRF']
-
-    fs = 500 * 10 ** 6  # Sampling frequency in Hz
-    c = 1540  # Speed of sound in m/s
-    N = rf_file.shape[0]  # Number of samples
-    L = rf_file.shape[1]  # Number of transducer elements
-    lateral_dimension = 0.02  # Lateral dimension of the image in meters
-
-    rf_file = sio.loadmat('./data/mousekidney.mat')['RawRF']
+    N = rf_file.shape[0]
     frequencies = rfftfreq(N, 1. / fs) / (10 ** 6)
-    print(frequencies.shape)
-    line = 0
-    # for line in range(L):
+    line = 100
     d_sig = rf_file[:, line]
     one_sided_power_spectrum = abs(rfft(d_sig))
-    plotted_one_of_them = True
-    plt.plot(frequencies, one_sided_power_spectrum)
+    filtered_signal = butter_bandpass_filter(d_sig, lowcut, highcut, fs, order=4)
+    one_sided_filtered = abs(rfft(filtered_signal))
+
+    plt.plot(frequencies, one_sided_power_spectrum, label='Original signal')
+    plt.plot(frequencies, one_sided_filtered, label='Filtered signal')
     plt.grid()
     plt.xlabel('Frequency, mega hertz')
     plt.ylabel('Amplitude')
     plt.title('Signal power spectrum for a line')
+    plt.legend(loc='upper right')
     plt.show()
-    # break
 
-    b, a = butter(N=4, Wn=0.03, analog=False)
-    print(b, a)
-    # Show that frequency response is the same
 
-    # Applies filter forward and backward in time
-    imp_ff = signal.filtfilt(b, a, d_sig)
+def sevomi(fs, lowcut, highcut):
+    rf_file = sio.loadmat('./data/mousekidney.mat')['RawRF']
+    N = rf_file.shape[0]
+    L = rf_file.shape[1]
+    img = np.empty_like(rf_file)
+    for line in range(L):
+        img[:, line] = butter_bandpass_filter(rf_file[:, line], lowcut, highcut, fs, order=4)
+    mine, maxe = np.min(img), np.max(img)
+    img = Image.fromarray(img).resize((400, 600))
+    img = (255 * (img - mine) / (maxe - mine))
 
-    # Applies filter forward in time twice (for same frequency response)
-
-    plt.subplot(2, 1, 1)
-    plt.semilogx(20 * np.log10(np.abs(rfft(imp_ff))))
-    plt.ylim(-100, 20)
-    plt.grid(True, which='both')
-    plt.title('filtfilt')
-
-    sig_ff = signal.filtfilt(b, a, d_sig)
-    plt.subplot(2, 1, 2)
-    plt.plot(d_sig, color='silver', label='Original')
-    plt.plot(sig_ff, color='#3465a4', label='filtfilt')
-    plt.grid(True, which='both')
-    plt.legend(loc="best")
+    print(np.min(img), np.mean(img), np.max(img))
+    plt.imshow(img, cmap='gray')
+    plt.axis('off')
     plt.show()
+
+
+if __name__ == "__main__":
+    fs = 500 * 10 ** 6
+    lowcut = 5 * 10 ** 6
+    highcut = 50 * 10 ** 6
+    # avali(fs=fs, lowcut=lowcut, highcut=highcut)
+    # dovomi(fs=fs, lowcut=lowcut, highcut=highcut)
+    sevomi(fs=fs, lowcut=lowcut, highcut=highcut)

@@ -13,4 +13,6 @@ if __name__ == "__main__":
     sampling_time = N / fs
     # And we have to see in that time, how much the sound signal can travel?
     max_depth = sampling_time * c
-    print(f'{max_depth} meters')
+    print(f'Depth: {max_depth} meters')
+    print(f'Width: 0.02, Lateral resolution: {lateral_dimension / L:.05f}')
+    print(L, N)
