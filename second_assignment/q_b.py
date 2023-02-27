@@ -35,7 +35,6 @@ if __name__ == "__main__":
         for line in range(L):
             d_sig = rf_file[left:right, line]
             one_sided_power_spectrum = abs(rfft(d_sig))
-            # one_sided_power_spectrum = one_sided_power_spectrum / np.max(one_sided_power_spectrum)
             all_spectrum[line, :] = one_sided_power_spectrum[:]
             if not plotted_one_of_them:
                 plotted_one_of_them = True
@@ -51,7 +50,7 @@ if __name__ == "__main__":
         plt.plot(frequencies, mean_of_all)
         plt.grid()
         plt.plot(frequencies[np.argmax(mean_of_all)], mean_of_all[np.argmax(mean_of_all)], 'ok')
-        plt.xlabel('Frequency, mega hertz')
+        plt.xlabel('Frequency (MHz)')
         plt.ylabel('Amplitude, normalized')
         plt.title(f"Normalized averaged power spectrum for depth {depths[kd]['left'], depths[kd]['right']}")
         print(f"Depth {depths[kd]['left'], depths[kd]['right']}\tcenter: {frequencies[np.argmax(mean_of_all)]:.3f} MHz")
