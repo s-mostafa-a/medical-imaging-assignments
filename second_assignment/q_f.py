@@ -34,8 +34,9 @@ def _call_plot_stuff_i():
 
 def item_i(rf, fs, lowcut, highcut):
     img = bandpass_filter(rf_file=rf, fs=fs, lowcut=lowcut, highcut=highcut)
-    env_image = np.abs(hilbert(img, axis=0))
-    scaled_image = env_image / env_image.max()
+    analytical = img + 1.j * hilbert(img, axis=0)
+    env = np.abs(analytical)
+    scaled_image = env / env.max()
     log_image = 20 * np.log10(scaled_image)
 
     img = Image.fromarray(log_image).resize((400, 600))

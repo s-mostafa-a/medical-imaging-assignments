@@ -64,7 +64,8 @@ def _call_plot_stuff_iii():
 
 def item_iii(rf, fs, lowcut, highcut):
     img = bandpass_filter(rf_file=rf, fs=fs, lowcut=lowcut, highcut=highcut)
-    env = np.abs(hilbert(img, axis=0))
+    analytical = img + 1.j * hilbert(img, axis=0)
+    env = np.abs(analytical)
     img = Image.fromarray(env).resize((400, 600))
     mine, maxe = np.min(img), np.max(img)
     _call_plot_stuff_iii()
