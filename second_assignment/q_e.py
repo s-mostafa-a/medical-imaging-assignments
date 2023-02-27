@@ -34,24 +34,59 @@ def bandpass_filter(rf_file, fs, lowcut, highcut):
     # plt.show()
 
 
-def envelope_detection():
+def envelope_detection_single():
+    line = 100
+
     fs = 500 * 10 ** 6
     lowcut = 5 * 10 ** 6
     highcut = 50 * 10 ** 6
     rf_file = sio.loadmat('./data/mousekidney.mat')['RawRF']
     N = rf_file.shape[0]
     L = rf_file.shape[1]
-    img = bandpass_filter(rf_file=rf_file, fs=fs, lowcut=lowcut, highcut=highcut)
-    env = hilbert(img[:, 100])
-    t = np.arange(0, N / fs, 1 / fs)
+    c = 1540  # Speed of sound in m/s
+
+    depth = np.arange(0, N * c / (fs * 1000), c / (fs * 1000))
+
     # plot(t, x)
     # plot(t, m_hat)
-    plt.plot(t, img[:, 100], color='silver', label='Original')
-    plt.plot(t, env, color='#3465a4', label='Envelop')
+    plt.subplot(3, 1, 1)
+    plt.plot(depth, rf_file[:, line], color='silver', label='Original')
     plt.legend(loc='upper right')
+
+    img = bandpass_filter(rf_file=rf_file, fs=fs, lowcut=lowcut, highcut=highcut)
+    plt.subplot(3, 1, 2)
+    plt.plot(depth, img[:, line], color='#3465a4', label='Filtered')
+    plt.legend(loc='upper right')
+
+    env = np.abs(hilbert(img[:, line]))
+    plt.subplot(3, 1, 3)
+    plt.plot(depth, env, color='red', label='Envelop')
+
+    plt.legend(loc='upper right')
+    print(np.mean(img[:, line] - env))
+
     plt.show()
-    print(env.shape)
+
+
+def envelope_detection_img():
+    fs = 500 * 10 ** 6
+    lowcut = 5 * 10 ** 6
+    highcut = 50 * 10 ** 6
+    rf_file = sio.loadmat('./data/mousekidney.mat')['RawRF']
+    N = rf_file.shape[0]
+    L = rf_file.shape[1]
+    c = 1540  # Speed of sound in m/s
+    depth = np.arange(0, N * c / (fs * 1000), c / (fs * 1000))
+
+    img = bandpass_filter(rf_file=rf_file, fs=fs, lowcut=lowcut, highcut=highcut)
+    env = np.log(np.abs(hilbert(img, axis=0)))
+    img = Image.fromarray(env).resize((400, 600))
+    plt.imshow(img, cmap='gray')
+    plt.axis('off')
+    plt.show()
+
 
 
 if __name__ == "__main__":
-    envelope_detection()
+    # envelope_detection_single()
+    envelope_detection_img()
