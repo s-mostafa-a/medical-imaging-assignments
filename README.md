@@ -1,5 +1,5 @@
 # Medical Imaging Experimental Assignments
-My assignments for Medical Imaging Techniques (EECS4640/5640) at York University.
+My assignments for Medical Imaging Techniques course (EECS4640/5640) at York University.
 
 
 The course covers the book [J.L. Prince, J. Links, Medical Imaging Signals and Systems, 2nd edition, Pearson. (ISBN: 978-0132145183, 2014.)](https://www.pearson.com/en-us/subject-catalog/p/medical-imaging-signals-and-systems/P200000003390/9780137982028). 
