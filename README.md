@@ -1,4 +1,4 @@
-# Medical Imaging Experimental Assignments
+# Medical Imaging Techniques Experimental Assignments and Final Project
 My assignments and final project for Medical Imaging Techniques course (EECS4640/5640) at York University.
 
 
